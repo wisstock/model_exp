@@ -45,17 +45,6 @@ import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
 
-# # simple exponential equation 
-# sym.init_printing()
-# t, l = sym.symbols('t lambda')
-# y = sym.Function('y')(t)
-# dydt = y.diff(t)
-# expr = sym.Eq(dydt, -l*y)
-# d_expr = sym.dsolve(expr)
-
-# sym.pprint(expr)
-# sym.pprint(d_expr)
-
 
 def hill_fam(K_val, n_list, c=np.arange(0, 1, 0.01)):
 	""" Hill equation solutions family.
@@ -76,7 +65,8 @@ def hill_fam(K_val, n_list, c=np.arange(0, 1, 0.01)):
 	plt.ylabel('Y')
 	plt.legend()
 	plt.show()
-# hill_fam(K_val=0.5, n_list=np.arange(1, 3.5, 0.5))
+	
+hill_fam(K_val=0.5, n_list=np.arange(1, 3.5, 0.5))
 
 
 def rp_fam(K_val, K_list, a_list, n_val=1.5, c=np.arange(0, 1, 0.01)):
@@ -108,28 +98,5 @@ def rp_fam(K_val, K_list, a_list, n_val=1.5, c=np.arange(0, 1, 0.01)):
 	plt.ylabel('Cm (uM)')
 	plt.legend()
 	plt.show()
-# rp_fam(K_val=0.3, K_list=np.arange(0.1, 0.8, 0.2), a_list=np.arange(1, 9, 2), n_val=1.5, c=np.arange(0, 1.51, 0.01))
 
-
-# Ca influx
-
-# t, l = sym.symbols('t lambda')
-# y = sym.Function('y')(t)
-# dydt = y.diff(t)
-# expr = sym.Eq(dydt, -l*y)
-# d_expr = sym.dsolve(expr)
-
-# sym.pprint(expr)
-# sym.pprint(d_expr)
-
-t, I, F, V = sp.symbols('t I_ion F V')
-C_Ca = sp.Function('[Ca]')(t)
-dCa_dt = C_Ca.diff(t)
-influx_eq = sp.Eq(dCa_dt, -I/(2*F*V))
-influx_solv = sp.dsolve(influx_eq, C_Ca)
-fin_solv = influx_solv.subs(t,0)
-
-
-sp.pprint(influx_eq, use_unicode=True)
-sp.pprint(influx_solv, use_unicode=True)
-sp.pprint(fin_solv, use_unicode=False)
+rp_fam(K_val=0.3, K_list=np.arange(0.1, 0.8, 0.2), a_list=np.arange(1, 9, 2), n_val=1.5, c=np.arange(0, 1.51, 0.01))
