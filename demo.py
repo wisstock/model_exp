@@ -99,4 +99,4 @@ def rp_fam(K_val, K_list, a_list, n_val=1.5, c=np.arange(0, 1, 0.01)):
 	plt.legend()
 	plt.show()
 
-rp_fam(K_val=0.3, K_list=np.arange(0.1, 0.8, 0.2), a_list=np.arange(1, 9, 2), n_val=1.5, c=np.arange(0, 1.51, 0.01))
+# rp_fam(K_val=0.3, K_list=np.arange(0.1, 0.8, 0.2), a_list=np.arange(1, 9, 2), n_val=1.5, c=np.arange(0, 1.51, 0.01))

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ Copyright © 2022 Borys Olifirov
-Reproduction of results Markram et al. (1998) with Sympy library.
+Replication of results Markram et al. (1998) with Sympy library.
 
 """
 import numpy as np
@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 # t - s, time
 # C_ca_f - nM, free Ca concentration
 # C_ca_t - nM, total Ca concentration
+# C_rp_b - uM, Ca-bound form concentration of individual RP
 
 # Global model parameters
 r_val = 1           # um, radius of compartment
@@ -26,6 +27,9 @@ K_d_val = 1         # uM, RP dissociation constant
 C_ca_rest_val = 50  # nM, resing Ca level
 
 # RP model parameters
+C_rp_t_val = 120    # uM, total concentration on individual RP
+k_on_2_val = 1e8    # 1/(mol*s), association rate constant of intermediate RP
+k_off_2_val = 1e2   # 1/s, dissociation rate constant of intermediate RP
 
 
 
@@ -45,27 +49,44 @@ C_ca_rest_val = 50  # nM, resing Ca level
 # sym.pprint(d_expr)
 
 
+# simple model
+#   k_i
+# A ---> B
+#   <---
+#   k_o
+t, k_i, k_o, A_0, B_0 = sp.symbols('t k_i k_o [A]_0 [B]_0')
+At = sp.Function('[A]')(t)
+dA_dt = At.diff(t)
+A_eq = sp.Eq(dA_dt, -k_i*At + k_o * (A_0 - At))
+A_dsolv = sp.dsolve(A_eq)
+
+sp.pprint(A_eq)
+sp.pprint(A_dsolv)
+sp.pprint(A_dsolv.subs(t, 0))
 
 
 # # 2nd order RP kinetic (Markram, 1998)
 
-# t, I, F, V = sp.symbols('t I_ion F V')
-# C_Ca = sp.Function('[Ca]')(t)
-# dCa_dt = C_Ca.diff(t)
-# influx_eq = sp.Eq(dCa_dt, -I/(2*F*V))
-# influx_solv = sp.dsolve(influx_eq, C_Ca)
-# fin_solv = influx_solv.subs(sp.Symbol('C1'), C_Ca.subs(t, 0))
-# i_solv = sp.solve(fin_solv, I)
+# t, k_on, k_off, C_ca, C_p, C_t = sp.symbols('t k_i k_o C_ion C_p C_t')
+# Cb = sp.Function('C_m')(t)
+# dCb_dt = Cb.diff(t)
+# rp_eq = sp.Eq(- dCb_dt, -k_on * C_ca * (C_t - Cb) + k_off * Cb)
+# rp_dsolv = sp.dsolve(rp_eq, Cb)
+
+# t_0 = rp_dsolv.subs(t, 0)
+# # C1_eq = sp.Eq(sp.solve(t_0, sp.Symbol('C1'))[0], C1)
+# fin_solv = rp_dsolv.subs(sp.Symbol('C1'), C_t)
+# # i_solv = sp.solve(fin_solv, I)
 
 
-# sp.pprint(influx_eq, use_unicode=True)
-# sp.pprint(influx_solv, use_unicode=True)
-# sp.pprint(fin_solv, use_unicode=True)
-# sp.pprint(fin_solv.subs({C_Ca.subs(t, 0) : 50, F : 96485, V : 10}), use_unicode=True)
+# sp.pprint(rp_eq, use_unicode=True)
+# sp.pprint(rp_dsolv, use_unicode=True)
+# # sp.pprint(fin_solv, use_unicode=True)
+# # # sp.pprint(fin_solv.subs({C_Ca.subs(t, 0) : 50, F : 96485, V : 10}), use_unicode=True)
 
-# ca_influx = sp.lambdify(t, fin_solv.subs({C_Ca.subs(t, 0) : 50, F : 96485, V : 10, I : 130}).rhs, "numpy")
+# rp_num = sp.lambdify(t, fin_solv.subs({C_t : C_rp_t_val, k_on : k_on_2_val, k_off : k_off_2_val}).rhs, "numpy")
 # t = np.arange(1, 10, 1)
 # fig, ax = plt.subplots(figsize=(4, 4))
 # plt.subplot()
-# plt.plot(t, ca_influx(t))
+# plt.plot(t, rp_num(t))
 # plt.show()
