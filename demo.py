@@ -130,23 +130,29 @@ def sh_mod(K_val, a_val, K_list, a_list, n_val=1.5, C_ca_range=np.arange(0, 1, 0
 # sh_mod(K_val=0.3, a_val=1, K_list=[0.1, 0.3, 0.6], a_list=[0.2, 0.5, 1], n_val=1.3, C_ca_range=np.arange(0, 0.5, 0.001))
 
 
-def sh_k_d(K_d_lim, a_lim, n_val=1.5, t_out_val=1, D_val=30):
-	""" Membrane Kd estimation
+def Kd_vs_a(K_d_lim, a_lim, n_val=1.5, t_out_val=3, D_val=30):
+	""" Membrane Kd estimation, cytosol Kd vs diffusion distance a 
 
 	"""
 	K_d, n, t_out, a, D = sp.symbols('K n tau_-1 a D')
 	K_m = sp.Function('K_m')(K_d, a)
-	K_m_eq = sp.Eq(K_m, (t_out/(a**2/D))**(1/n) * K_d)
+	K_m_eq = sp.Eq(K_m, ((a**2/D)/t_out)**(1/n) * K_d)
 	K_m_lambda = sp.lambdify([K_d, a], K_m_eq.subs({t_out : t_out_val, n : n_val, D : D_val}).rhs, 'numpy')
 	sp.pprint(K_m_eq)
 
 	K_d_X, a_Y = np.meshgrid(np.linspace(K_d_lim[0], K_d_lim[1]), np.linspace(a_lim[0], a_lim[1]))
 	K_m_Z = K_m_lambda(K_d_X, a_Y)
-	print(K_m_Z.shape)
 
 	levels = np.linspace(np.min(K_m_Z), np.max(K_m_Z))
-	fig, ax = plt.subplots()
-	ax.contourf(K_d_X, a_Y, K_m_Z, levels=levels)
+	plt.contourf(K_d_X, a_Y, K_m_Z, cmap='turbo', levels=levels)
+	plt.colorbar(label='Km (uM)')
+	plt.xlabel('Kd (uM)')
+	plt.ylabel('a (um)')
+	plt.title(f'D={D_val}um^2/s, t_out={t_out_val}s, n={n_val}')
 	plt.show()
 
-sh_k_d(K_d_lim=[0.3, 1.5], a_lim=[0.01, 0.1]) 
+# Kd_vs_a(K_d_lim=[0.3, 1.5], a_lim=[0.5, 5], n_val=1.2)
+
+K, K_1, K_2 = sp.symbols('K K_1 K_2')
+K_exp = sp.simplify(1/((1/K_1)+(1/K_2)))
+sp.pprint(K_exp)
