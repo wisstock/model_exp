@@ -66,11 +66,12 @@ def hill_fam(K_val, n_list, c=np.arange(0, 1, 0.01)):
 	plt.legend()
 	plt.show()
 	
-hill_fam(K_val=0.5, n_list=np.arange(1, 3.5, 0.5))
+# hill_fam(K_val=0.5, n_list=[-2, -1, 1, 2])  # np.arange(1, 6, 1)
 
 
 def rp_fam(K_val, K_list, a_list, n_val=1.5, c=np.arange(0, 1, 0.01)):
-	""" Shurik's HPCA model with diffusion distance variation vs. Hill model with Kd variation
+	""" Shurik's HPCA Kd estimation model with diffusion distance variation vs. Hill model with Kd variation.
+   Use simple Y estimation, isn't correct.
 
 	"""
 	n, K_d, a, D, t_off, C_ca, C_tot = sp.symbols('n K a D tau_aut [Ca] C_tot')
@@ -99,4 +100,53 @@ def rp_fam(K_val, K_list, a_list, n_val=1.5, c=np.arange(0, 1, 0.01)):
 	plt.legend()
 	plt.show()
 
-# rp_fam(K_val=0.3, K_list=np.arange(0.1, 0.8, 0.2), a_list=np.arange(1, 9, 2), n_val=1.5, c=np.arange(0, 1.51, 0.01))
+# rp_fam(K_val=0.3, K_list=np.arange(0.1, 0.8, 0.2), a_list=np.arange(1, 9, 2), n_val=1.5, c=np.arange(0, 1, 0.01))
+
+
+def sh_mod(K_val, a_val, K_list, a_list, n_val=1.5, C_ca_range=np.arange(0, 1, 0.01)):
+	""" Pure Shutik's kinetic model.
+	Series with various a (diffusion distance) and cytoplasmic Kd. 
+
+	"""
+	K_d, C_ca, n, t_out, a, D = sp.symbols('K [Ca] n tau_-1 a D')
+	Y = sp.Function('Y')(C_ca)
+	y_eq = sp.Eq(Y, (t_out/(a**2/D))*(C_ca/K_d)**n/(1 + (C_ca/K_d)**n + (t_out/(a**2/D))*(C_ca/K_d)**n))  # full model
+	sp.pprint(y_eq, use_unicode=True)
+
+	a_var_assemblage = [sp.lambdify(C_ca, y_eq.subs({K_d : K_val, n : n_val, t_out : 1, a : one_a, D : 30}).rhs, "numpy") for one_a in a_list] 
+	K_var_assemblage = [sp.lambdify(C_ca, y_eq.subs({K_d : one_K, n : n_val, t_out : 1, a : a_val, D : 30}).rhs, "numpy") for one_K in K_list]
+
+	fig, ax = plt.subplots(figsize=(4, 4))
+	plt.subplot()
+	for h in range(0, len(K_var_assemblage)):
+		plt.plot(C_ca_range, K_var_assemblage[h](C_ca_range), linestyle=':', linewidth=2.5, label=f'Kd={round(K_list[h], 1)}mM')
+	for i in range(0, len(a_var_assemblage)):
+		plt.plot(C_ca_range, a_var_assemblage[i](C_ca_range), linestyle='--', label=f'a={a_list[i]}um')
+	plt.xlabel('[Ca] (uM)')
+	plt.ylabel('Y')
+	plt.legend()
+	plt.show()
+
+# sh_mod(K_val=0.3, a_val=1, K_list=[0.1, 0.3, 0.6], a_list=[0.2, 0.5, 1], n_val=1.3, C_ca_range=np.arange(0, 0.5, 0.001))
+
+
+def sh_k_d(K_d_lim, a_lim, n_val=1.5, t_out_val=1, D_val=30):
+	""" Membrane Kd estimation
+
+	"""
+	K_d, n, t_out, a, D = sp.symbols('K n tau_-1 a D')
+	K_m = sp.Function('K_m')(K_d, a)
+	K_m_eq = sp.Eq(K_m, (t_out/(a**2/D))**(1/n) * K_d)
+	K_m_lambda = sp.lambdify([K_d, a], K_m_eq.subs({t_out : t_out_val, n : n_val, D : D_val}).rhs, 'numpy')
+	sp.pprint(K_m_eq)
+
+	K_d_X, a_Y = np.meshgrid(np.linspace(K_d_lim[0], K_d_lim[1]), np.linspace(a_lim[0], a_lim[1]))
+	K_m_Z = K_m_lambda(K_d_X, a_Y)
+	print(K_m_Z.shape)
+
+	levels = np.linspace(np.min(K_m_Z), np.max(K_m_Z))
+	fig, ax = plt.subplots()
+	ax.contourf(K_d_X, a_Y, K_m_Z, levels=levels)
+	plt.show()
+
+sh_k_d(K_d_lim=[0.3, 1.5], a_lim=[0.01, 0.1]) 
