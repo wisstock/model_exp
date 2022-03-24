@@ -153,6 +153,31 @@ def Kd_vs_a(K_d_lim, a_lim, n_val=1.5, t_out_val=3, D_val=30):
 
 # Kd_vs_a(K_d_lim=[0.3, 1.5], a_lim=[0.5, 5], n_val=1.2)
 
-K, K_1, K_2 = sp.symbols('K K_1 K_2')
-K_exp = sp.simplify(1/((1/K_1)+(1/K_2)))
-sp.pprint(K_exp)
+
+def Kd_vs_n(K_d_lim, n_lim, a_val=2, t_out_val=3, D_val=30):
+	""" Membrane Kd estimation, cytosol Kd vs Hill coefficient n 
+
+	"""
+	K_d, n, t_out, a, D = sp.symbols('K n tau_-1 a D')
+	K_m = sp.Function('K_m')(K_d, a)
+	K_m_eq = sp.Eq(K_m, ((a**2/D)/t_out)**(1/n) * K_d)
+	K_m_lambda = sp.lambdify([K_d, n], K_m_eq.subs({t_out : t_out_val, a : a_val, D : D_val}).rhs, 'numpy')
+	sp.pprint(K_m_eq)
+
+	K_d_X, n_Y = np.meshgrid(np.linspace(K_d_lim[0], K_d_lim[1]), np.linspace(n_lim[0], n_lim[1]))
+	K_m_Z = K_m_lambda(K_d_X, n_Y)
+
+	levels = np.linspace(np.min(K_m_Z), np.max(K_m_Z))
+	plt.contourf(K_d_X, n_Y, K_m_Z, cmap='turbo', levels=levels)
+	plt.colorbar(label='Km (uM)')
+	plt.xlabel('Kd (uM)')
+	plt.ylabel('n')
+	plt.title(f'D={D_val}um^2/s, t_out={t_out_val}s, a={a_val}um')
+	plt.show()
+
+
+Kd_vs_n(K_d_lim=[0.3, 1.5], n_lim=[1, 2], a_val=3)
+
+# K, K_1, K_2 = sp.symbols('K K_1 K_2')
+# K_exp = sp.simplify(1/((1/K_1)+(1/K_2)))
+# sp.pprint(K_exp)
