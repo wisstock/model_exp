@@ -163,6 +163,7 @@ def Kd_vs_n(K_d_lim, n_lim, a_val=2, t_out_val=3, D_val=30):
 	K_m_eq = sp.Eq(K_m, ((a**2/D)/t_out)**(1/n) * K_d)
 	K_m_lambda = sp.lambdify([K_d, n], K_m_eq.subs({t_out : t_out_val, a : a_val, D : D_val}).rhs, 'numpy')
 	sp.pprint(K_m_eq)
+	print(sp.latex(K_m_eq))
 
 	K_d_X, n_Y = np.meshgrid(np.linspace(K_d_lim[0], K_d_lim[1]), np.linspace(n_lim[0], n_lim[1]))
 	K_m_Z = K_m_lambda(K_d_X, n_Y)
