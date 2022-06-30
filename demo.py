@@ -154,6 +154,49 @@ def Kd_vs_a(K_d_lim, a_lim, n_val=1.5, t_out_val=3, D_val=30):
 # Kd_vs_a(K_d_lim=[0.3, 1.5], a_lim=[0.5, 5], n_val=1.2)
 
 
+def Km_vs_a(K_m_lim, a_lim, n_val=1.5, t_out_val=3, D_val=30):
+	""" Membrane Kd estimation, cytosol Kd vs diffusion distance a 
+
+	"""
+	K_m, n, t_out, a, D = sp.symbols('K_m n tau_-1 a D')
+	K_d = sp.Function('K')(K_m, a)
+	K_d_eq = sp.Eq(K_d, ((a**2/D)/t_out)**(1/n) * 1/K_m)
+	K_d_lambda = sp.lambdify([K_m, a], K_d_eq.subs({t_out : t_out_val, n : n_val, D : D_val}).rhs, 'numpy')
+	sp.pprint(K_d_eq)
+
+	K_m_X, a_Y = np.meshgrid(np.linspace(K_m_lim[0], K_m_lim[1]), np.linspace(a_lim[0], a_lim[1]))
+	K_d_Z = K_d_lambda(K_m_X, a_Y)
+
+	levels = np.linspace(np.min(K_d_Z), np.max(K_d_Z))
+	plt.contourf(K_m_X, a_Y, K_d_Z, cmap='turbo', levels=levels)
+	plt.colorbar(label='Kd (uM)')
+	plt.xlabel('Km (uM)')
+	plt.ylabel('a (um)')
+	plt.title(f'D={D_val}um^2/s, t_out={t_out_val}s, n={n_val}')
+	plt.show()
+
+Km_vs_a(K_m_lim=[0.2, 5], a_lim=[0.5, 5], n_val=1.4, t_out_val=3, D_val=30)
+
+
+def Kd_vs_a_line(K_d_lim, K_m_lim, n_val=1.5, t_out_val=3, D_val=30):
+	""" Membrane Kd estimation, cytosol Kd vs diffusion distance a at different fixed Kd membrane values
+
+	"""
+	Km, Kd, n, t_out, D = sp.symbols('Km Kd n tau_-1 D')
+	a = sp.Function('a')(Km, Kd)
+	a_eq = sp.Eq(a, sp.sqrt((D * t_out * (Km/Kd)**n)))
+	a_lambda = sp.lambdify([Km, Kd], a_eq.subs({t_out : t_out_val, n : n_val, D : D_val}).rhs, 'numpy')
+	# a_solve = sp.solve(sp.Eq(Kd_m, ((a**2/D)/t_out)**(1/n) * K_d), a)
+	sp.pprint(a_eq)
+
+	# K_d_list = 
+	np.linspace(K_d_lim[0], K_d_lim[1])
+	np.asarray(K_m_lim)
+	
+
+# Kd_vs_a_line(K_d_lim=[0.3, 1.5], K_m_lim=[0.150, 0.3, 0.4, 0.5], n_val=1.2)
+
+
 def Kd_vs_n(K_d_lim, n_lim, a_val=2, t_out_val=3, D_val=30):
 	""" Membrane Kd estimation, cytosol Kd vs Hill coefficient n 
 
@@ -176,8 +219,12 @@ def Kd_vs_n(K_d_lim, n_lim, a_val=2, t_out_val=3, D_val=30):
 	plt.title(f'D={D_val}um^2/s, t_out={t_out_val}s, a={a_val}um')
 	plt.show()
 
+n = 1.4
+a = 3.0
+t_out = 3.0
+D = 30.0 
 
-Kd_vs_n(K_d_lim=[0.3, 1.5], n_lim=[1, 2], a_val=3)
+# Kd_vs_n(K_d_lim=[0.3, 1.5], n_lim=[1, 2], a_val=3)
 
 # K, K_1, K_2 = sp.symbols('K K_1 K_2')
 # K_exp = sp.simplify(1/((1/K_1)+(1/K_2)))
